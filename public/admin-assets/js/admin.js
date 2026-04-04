@@ -50,6 +50,10 @@
                 </div>
                 <input type="text" class="form-control rounded-3" value="${opt.text}" placeholder="نص الشريحة" data-index="${i}" data-field="text">
                 <div class="form-check form-switch ms-2 mt-1">
+                    <input class="form-check-input" type="checkbox" role="switch" data-index="${i}" data-field="isEnabled" ${opt.isEnabled !== false ? 'checked' : ''}>
+                    <label class="form-check-label small text-muted">ضمن الجوائز</label>
+                </div>
+                <div class="form-check form-switch ms-2 mt-1">
                     <input class="form-check-input" type="checkbox" role="switch" data-index="${i}" data-field="isWin" ${opt.isWin ? 'checked' : ''}>
                     <label class="form-check-label small text-muted">فوز</label>
                 </div>
@@ -58,6 +62,12 @@
                 </button>
             </div>
         `).join('');
+
+        optionsList.querySelectorAll('input[data-field="isEnabled"]').forEach(inp => {
+            inp.addEventListener('change', function () {
+                options[+this.dataset.index].isEnabled = this.checked;
+            });
+        });
 
         optionsList.querySelectorAll('input[data-field="isWin"]').forEach(inp => {
             inp.addEventListener('change', function () {
@@ -86,7 +96,7 @@
     }
 
     addOptionBtn.addEventListener('click', function () {
-        options.push({ text: 'جائزة جديدة', color: '#6B1F2A', isWin: true });
+        options.push({ text: 'جائزة جديدة', color: '#6B1F2A', isWin: true, isEnabled: true });
         renderOptions();
     });
 
@@ -107,7 +117,8 @@
                     options: options.map(o => ({
                         text: o.text,
                         color: o.color,
-                        is_win: !!o.isWin
+                        is_win: !!o.isWin,
+                        is_enabled: o.isEnabled !== false
                     }))
                 })
             });
@@ -136,7 +147,8 @@
                     options = data.options.map(o => ({
                         text: o.text || o.label,
                         color: o.color || '#6B1F2A',
-                        isWin: !!o.is_win
+                        isWin: !!o.is_win,
+                        isEnabled: o.is_enabled !== false
                     }));
                 }
                 renderOptions();
@@ -165,10 +177,44 @@
                             </td>
                             <td class="text-muted">${p.created_at || '--'}</td>
                             <td class="text-end pe-4">
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">فائز</span>
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+                                    ${
+                                        p.is_win
+                                            ? '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">فائز</span>'
+                                            : '<span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">غير فائز</span>'
+                                    }
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill reset-spin" data-id="${p.id}" title="حذف مشاركة هذا الرقم">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `).join('');
+
+                    participantsList.querySelectorAll('.reset-spin').forEach(btn => {
+                        btn.addEventListener('click', async function () {
+                            const id = this.dataset.id;
+                            if (!id) return;
+                            if (!confirm('هل تريد حذف مشاركة هذا الرقم ليتمكن من المشاركة مرة أخرى؟')) return;
+                            try {
+                                const res = await fetch(apiBase + '/admin/api/participants/' + id, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                    }
+                                });
+                                if (res.ok) {
+                                    loadParticipants();
+                                } else {
+                                    alert('فشل حذف المشاركة');
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                alert('حدث خطأ أثناء حذف المشاركة');
+                            }
+                        });
+                    });
                 } else {
                     participantsList.innerHTML = '<tr><td colspan="4" class="text-center p-5 text-muted">لا يوجد مشاركون بعد</td></tr>';
                 }

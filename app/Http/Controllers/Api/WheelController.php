@@ -11,11 +11,15 @@ class WheelController extends Controller
 {
     public function options()
     {
-        $options = WheelOption::orderBy('order')->get()->map(fn($o) => [
-        'text' => $o->text,
-        'color' => $o->color,
-        'is_win' => (bool)$o->is_win,
-        ]);
+        $options = WheelOption::query()
+            ->orderBy('order')
+            ->get()
+            ->map(fn($o) => [
+                'text' => $o->text,
+                'color' => $o->color,
+                'is_win' => (bool)$o->is_win,
+                'is_enabled' => (bool)($o->is_enabled ?? true),
+            ]);
 
         if ($options->isEmpty()) {
             return response()->json([
@@ -38,7 +42,7 @@ class WheelController extends Controller
         return response()->json([
             'participants_count' => $count,
             'winners_count' => $winnersCount,
-            'last_spin_at' => $last ? $last->created_at->format('Y-m-d H:i') : null,
+            'last_spin_at' => $last ? $last->created_at->setTimezone('Europe/Istanbul')->format('Y-m-d H:i') : null,
         ]);
     }
 

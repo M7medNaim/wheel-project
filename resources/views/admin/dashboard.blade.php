@@ -52,7 +52,6 @@
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
                         <div id="optionsList">
-                            <!-- Options will be rendered here by admin.js -->
                             <div class="text-center p-5"><div class="spinner-border text-primary"></div></div>
                         </div>
                     </div>

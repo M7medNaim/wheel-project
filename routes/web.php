@@ -14,7 +14,26 @@ Route::group(['middleware' => ['web']], function () {
             if (!session()->has('participant_id')) {
                 return redirect()->route('index');
             }
-            return view('wheel');
+            $options = \App\Models\WheelOption::query()
+                ->orderBy('order')
+                ->get()
+                ->map(fn($o) => [
+                    'text' => $o->text,
+                    'color' => $o->color,
+                    'is_win' => (bool)$o->is_win,
+                    'is_enabled' => (bool)($o->is_enabled ?? true),
+                ])
+                ->values()
+                ->all();
+
+            if (empty($options)) {
+                $options = [
+                    ['text' => 'فوز', 'color' => '#198754', 'is_win' => true],
+                    ['text' => 'خسارة', 'color' => '#dc3545', 'is_win' => false],
+                ];
+            }
+
+            return view('wheel', ['initialOptions' => $options]);
         }
         )->name('wheel');
 
@@ -42,5 +61,6 @@ Route::group(['prefix' => 'admin'], function () {
                 Route::get('/api/options', [\App\Http\Controllers\Api\AdminController::class , 'getOptions']);
                 Route::post('/api/options', [\App\Http\Controllers\Api\AdminController::class , 'saveOptions']);
                 Route::get('/api/participants', [\App\Http\Controllers\Api\AdminController::class , 'participants']);
+                Route::delete('/api/participants/{spinResultId}', [\App\Http\Controllers\Api\AdminController::class , 'resetParticipantSpin']);
             }
             );        });

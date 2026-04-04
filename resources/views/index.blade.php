@@ -9,10 +9,8 @@
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <link rel="icon" type="image/png" href="{{ asset('images/noktaclinic1.png') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- International Telephone Input CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@26.1.1/build/css/intlTelInput.min.css">
     <style>
-        /* Force LTR and horizontal layout for phone input */
         .iti {
             display: block !important;
             width: 100% !important;
@@ -20,13 +18,12 @@
 
         #phone {
             width: 100% !important;
-            padding-left: 95px !important; /* Space for flag + code */
+            padding-left: 95px !important;
             direction: ltr !important;
             text-align: left !important;
-            height: 58px; /* Match btn height */
+            height: 58px;
         }
 
-        /* Prevent stacking of dial code */
         .iti--separate-dial-code .iti__selected-dial-code {
             display: inline-block !important;
             vertical-align: middle;
@@ -57,7 +54,7 @@
                     <img src="{{ asset('images/noktaclinic1.png') }}" alt="Nokta Clinic Logo" class="logo-img" onerror="this.src='https://placehold.co/120x120?text=Clinic';">
                 </div>
                 <h2 class="h3 mb-2">عجلة الحظ</h2>
-                <p class="text-muted">أدخل رقم هاتفك للمشاركة واربح معنا جوائز فورية</p>
+                <p class="text-muted">أدخل رقم هاتفك للمشاركة وابدأ رحلتك العلاجية مع هدية مميزة  🎁</p>
             </div>
 
             <form id="loginForm">
@@ -91,7 +88,7 @@
     <script>
         const phoneInput = document.querySelector("#phone");
         const iti = window.intlTelInput(phoneInput, {
-            initialCountry: "sa",
+            initialCountry: "tr",
             preferredCountries: ["sa", "ae", "jo", "tr", "eg"],
             separateDialCode: true,
             autoPlaceholder: "aggressive",
@@ -110,7 +107,6 @@
             const originalText = btn.innerHTML;
             const phoneNumber = phoneInput.value.trim();
 
-            // Clear previous errors
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
             phoneInput.classList.remove('is-invalid');
@@ -126,7 +122,6 @@
             console.log("Validation Result:", isValid);
             console.log("Error Code:", errorCode);
 
-            // Handle the case where utils.js is not yet loaded (returns null)
             if (isValid === null) {
                 console.warn("Utils not loaded, performing basic check...");
                 if (phoneNumber.length < 7) {
@@ -137,7 +132,7 @@
                 }
                 const countryData = iti.getSelectedCountryData();
                 fullPhone = "+" + countryData.dialCode + phoneNumber.replace(/^0+/, '');
-                isValid = true; // Proceed with basic check
+                isValid = true;
             }
 
             if (isValid === false) {
@@ -179,6 +174,7 @@
                 if (data.success) {
                     console.log("Login successful! Redirecting...");
                     localStorage.setItem('wheel_phone', data.phone);
+                    localStorage.removeItem('wheel_has_spun_' + data.phone);
                     window.location.href = '{{ route("wheel") }}';
                 }
             })
